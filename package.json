@@ -1,0 +1,15 @@
+{
+  "name": "prioritai-novus",
+  "version": "1.0.0",
+  "private": false,
+  "description": "AI-powered internal process prioritization assistant",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
