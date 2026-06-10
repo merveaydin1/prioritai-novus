@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="PrioritAI scores and prioritizes internal process improvement, AI, RPA, automation and dashboard requests." />
+    <title>PrioritAI | Internal Process Prioritization Assistant</title>
+    <link rel="stylesheet" href="./styles.css" />
+
+    <!--
+      NOVUS.AI INTEGRATION
+      1) Create your project in Novus.ai / Novus dashboard.
+      2) Paste the official Novus install snippet provided by Novus here, before novus-adapter.js.
+      3) Keep novus-adapter.js enabled. It sends product events such as request_created,
+         score_calculated, dashboard_filtered and sample_loaded when Novus/Pendo is detected.
+
+      Example placeholder only. Replace with the exact official snippet from your Novus dashboard:
+      <script src="https://YOUR_NOVUS_SCRIPT_URL.js" data-project-key="YOUR_PROJECT_KEY"></script>
+    -->
+    <script>
+      window.PRIORITAI_NOVUS_CONFIG = {
+        product: "PrioritAI",
+        environment: "production",
+        userRole: "digital_transformation_team",
+        // Optional: set to your public deployed URL after deployment.
+        appUrl: ""
+      };
+    </script>
+    <script src="./assets/novus-adapter.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero" data-novus-screen="home">
+        <nav class="nav">
+          <div class="brand">
+            <span class="brand-mark">P</span>
+            <div>
+              <strong>PrioritAI</strong>
+              <small>Internal Process Prioritization Assistant</small>
+            </div>
+          </div>
+          <div class="nav-actions">
+            <button class="ghost" id="loadSamplesBtn" data-novus-event="load_sample_requests">Load samples</button>
+            <button class="ghost" id="exportBtn" data-novus-event="export_json">Export JSON</button>
+            <button class="primary small" id="scrollToFormBtn" data-novus-event="start_new_request">New request</button>
+          </div>
+        </nav>
+
+        <section class="hero-grid">
+          <div>
+            <span class="eyebrow">Ship a real internal tool</span>
+            <h1>Prioritize AI, RPA and process improvement requests with transparent scoring.</h1>
+            <p>
+              PrioritAI turns scattered internal requests into a ranked, explainable backlog.
+              It evaluates each request across business value, strategic alignment, feasibility,
+              data readiness, urgency and user impact.
+            </p>
+            <div class="hero-actions">
+              <button class="primary" id="heroNewRequestBtn" data-novus-event="hero_new_request">Score a request</button>
+              <button class="secondary" id="viewDashboardBtn" data-novus-event="view_dashboard">View dashboard</button>
+            </div>
+          </div>
+          <aside class="score-preview" aria-label="Scoring formula preview">
+            <div class="preview-topline">Priority Score</div>
+            <div class="preview-score" id="heroScore">84</div>
+            <div class="preview-label">High Priority</div>
+            <div class="formula-list">
+              <span>Business Value 35%</span>
+              <span>Feasibility 20%</span>
+              <span>Data Readiness 15%</span>
+              <span>Strategy 15%</span>
+              <span>Urgency 10%</span>
+              <span>User Impact 5%</span>
+            </div>
+          </aside>
+        </section>
+      </header>
+
+      <main>
+        <section class="metrics" aria-label="Current prioritization summary" data-novus-screen="summary_metrics">
+          <article>
+            <span>Total requests</span>
+            <strong id="metricTotal">0</strong>
+          </article>
+          <article>
+            <span>High priority</span>
+            <strong id="metricHigh">0</strong>
+          </article>
+          <article>
+            <span>Quick wins</span>
+            <strong id="metricQuickWins">0</strong>
+          </article>
+          <article>
+            <span>High risk</span>
+            <strong id="metricRisk">0</strong>
+          </article>
+        </section>
+
+        <section class="workspace">
+          <section class="panel form-panel" id="requestFormSection" data-novus-screen="request_form">
+            <div class="section-title">
+              <div>
+                <span class="eyebrow">Request intake</span>
+                <h2>Score a new internal process request</h2>
+              </div>
+              <button class="ghost danger" id="resetFormBtn" data-novus-event="reset_form">Reset</button>
+            </div>
+
+            <form id="requestForm">
+              <div class="field-grid two">
+                <label>
+                  Request name
+                  <input name="name" required placeholder="e.g. Blocked cargo follow-up automation" />
+                </label>
+                <label>
+                  Department
+                  <select name="department" required>
+                    <option value="Operations">Operations</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Customer Experience">Customer Experience</option>
+                    <option value="Revenue Management">Revenue Management</option>
+                    <option value="Planning">Planning</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="field-grid two">
+                <label>
+                  Request type
+                  <select name="type" required>
+                    <option value="RPA / Automation">RPA / Automation</option>
+                    <option value="AI / ML">AI / ML</option>
+                    <option value="Dashboard / BI">Dashboard / BI</option>
+                    <option value="Optimization">Optimization</option>
+                    <option value="Process Improvement">Process Improvement</option>
+                  </select>
+                </label>
+                <label>
+                  Process pattern
+                  <select name="pattern" required>
+                    <option value="repetitive_rule_based">Repetitive and rule-based</option>
+                    <option value="prediction_classification">Prediction / classification</option>
+                    <option value="reporting_decision">Reporting / decision support</option>
+                    <option value="routing_scheduling">Routing / scheduling / optimization</option>
+                    <option value="unclear">Unclear / exploratory</option>
+                  </select>
+                </label>
+              </div>
+
+              <label>
+                Problem statement
+                <textarea name="problem" required rows="3" placeholder="What is the current pain point? What happens manually today?"></textarea>
+              </label>
+
+              <label>
+                Expected benefit
+                <textarea name="benefit" required rows="3" placeholder="Time saving, error reduction, better SLA, revenue impact, faster decisions..."></textarea>
+              </label>
+
+              <div class="field-grid three">
+                <label>
+                  Request owner
+                  <input name="owner" required placeholder="Business owner name" />
+                </label>
+                <label>
+                  Estimated users
+                  <input name="users" required type="number" min="1" value="10" />
+                </label>
+                <label>
+                  FTE saving / month
+                  <input name="fte" required type="number" min="0" step="0.1" value="0.5" />
+                </label>
+              </div>
+
+              <div class="sliders">
+                <div class="slider-card">
+                  <label for="businessImpact">Business impact <output id="businessImpactValue">4</output></label>
+                  <input id="businessImpact" name="businessImpact" type="range" min="1" max="5" value="4" />
+                  <small>Operational, financial and process value.</small>
+                </div>
+                <div class="slider-card">
+                  <label for="financialImpact">Financial impact <output id="financialImpactValue">3</output></label>
+                  <input id="financialImpact" name="financialImpact" type="range" min="1" max="5" value="3" />
+                  <small>Revenue growth or cost reduction potential.</small>
+                </div>
+                <div class="slider-card">
+                  <label for="errorReduction">Error reduction <output id="errorReductionValue">4</output></label>
+                  <input id="errorReduction" name="errorReduction" type="range" min="1" max="5" value="4" />
+                  <small>Manual error, rework or compliance reduction.</small>
+                </div>
+                <div class="slider-card">
+                  <label for="strategicAlignment">Strategic alignment <output id="strategicAlignmentValue">4</output></label>
+                  <input id="strategicAlignment" name="strategicAlignment" type="range" min="1" max="5" value="4" />
+                  <small>Fit with digitalization, AI, automation, customer or sustainability goals.</small>
+                </div>
+                <div class="slider-card">
+                  <label for="feasibility">Feasibility <output id="feasibilityValue">4</output></label>
+                  <input id="feasibility" name="feasibility" type="range" min="1" max="5" value="4" />
+                  <small>Technical simplicity, stable scope and low dependency.</small>
+                </div>
+                <div class="slider-card">
+                  <label for="dataReadiness">Data readiness <output id="dataReadinessValue">3</output></label>
+                  <input id="dataReadiness" name="dataReadiness" type="range" min="1" max="5" value="3" />
+                  <small>Data availability, accessibility and quality.</small>
+                </div>
+                <div class="slider-card">
+                  <label for="urgency">Urgency <output id="urgencyValue">3</output></label>
+                  <input id="urgency" name="urgency" type="range" min="1" max="5" value="3" />
+                  <small>Deadline, customer pressure or operational priority.</small>
+                </div>
+                <div class="slider-card">
+                  <label for="risk">Operational risk if not solved <output id="riskValue">3</output></label>
+                  <input id="risk" name="risk" type="range" min="1" max="5" value="3" />
+                  <small>Impact of keeping the current process unchanged.</small>
+                </div>
+              </div>
+
+              <div class="field-grid three checkbox-row">
+                <label class="check">
+                  <input type="checkbox" name="hasClearDataSource" checked />
+                  Clear data source
+                </label>
+                <label class="check">
+                  <input type="checkbox" name="isStandardProcess" checked />
+                  Standard process
+                </label>
+                <label class="check">
+                  <input type="checkbox" name="hasKnownDependency" />
+                  Heavy IT/system dependency
+                </label>
+              </div>
+
+              <button class="primary full" type="submit" data-novus-event="calculate_priority">Calculate priority</button>
+            </form>
+          </section>
+
+          <aside class="panel result-panel" id="resultPanel" data-novus-screen="score_result">
+            <span class="eyebrow">AI-style recommendation</span>
+            <h2 id="resultTitle">No request scored yet</h2>
+            <div class="result-score-wrap">
+              <div class="result-score" id="resultScore">--</div>
+              <div>
+                <strong id="resultLevel">Waiting for input</strong>
+                <p id="resultTrack">Fill the form to generate recommendation.</p>
+              </div>
+            </div>
+            <div class="badges" id="resultBadges"></div>
+            <p class="summary" id="resultSummary">
+              PrioritAI will explain why the request should be prioritized, parked or clarified.
+            </p>
+            <div class="next-step">
+              <strong>Next step</strong>
+              <p id="resultNextStep">Submit a request to see the recommended action.</p>
+            </div>
+            <div class="breakdown" id="breakdown"></div>
+          </aside>
+        </section>
+
+        <section class="panel dashboard" id="dashboardSection" data-novus-screen="dashboard">
+          <div class="section-title dashboard-title">
+            <div>
+              <span class="eyebrow">Ranked backlog</span>
+              <h2>Prioritized internal request dashboard</h2>
+            </div>
+            <div class="filters">
+              <input id="searchInput" placeholder="Search request, department or type" />
+              <select id="priorityFilter">
+                <option value="all">All priorities</option>
+                <option value="High Priority">High Priority</option>
+                <option value="Medium Priority">Medium Priority</option>
+                <option value="Low Priority">Low Priority</option>
+                <option value="Not Recommended">Not Recommended</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Request</th>
+                  <th>Department</th>
+                  <th>Type</th>
+                  <th>Score</th>
+                  <th>Priority</th>
+                  <th>Track</th>
+                  <th>Flags</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="requestTableBody">
+                <tr>
+                  <td colspan="9" class="empty">No requests yet. Add a request or load samples.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel explanation" data-novus-screen="methodology">
+          <span class="eyebrow">How the engine works</span>
+          <h2>Scoring model</h2>
+          <div class="method-grid">
+            <article>
+              <strong>1. Eligibility gate</strong>
+              <p>Checks whether the problem, owner, expected benefit and data source are clear enough to score.</p>
+            </article>
+            <article>
+              <strong>2. Weighted score</strong>
+              <p>Calculates a 0–100 priority score using value, feasibility, data readiness, strategy, urgency and user impact.</p>
+            </article>
+            <article>
+              <strong>3. Explainability</strong>
+              <p>Generates a plain-language summary, risk flags, next step and suggested project track.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="badgeTemplate"><span class="badge"></span></template>
+    <script src="./app.js"></script>
+  </body>
+</html>
